@@ -1,4 +1,4 @@
-package CommandWS;
+package Mojolicious::Plugin::CommandWS::Command;
 
 my %flow = (
 	__init__	=> "REQUEST",
@@ -7,7 +7,7 @@ my %flow = (
 );
 
 my $validator	= JSON::Validator->new;
-$validator->schema("data://CommandWS/msg.schema.json");
+$validator->schema("data://Mojolicious::Plugin::CommandWS::Command/msg.schema.json");
 
 sub new {
 	my $class	= shift;
@@ -34,11 +34,13 @@ sub data {
 
 sub reply {
 	my $self = shift;
+	my $data = shift;
 	die "End of type flow" unless exists $flow{$self->{msg}->{type}};
 
 	my $new = bless { %$self }, ref $self;
 
 	$new->{msg}->{type} = $flow{$new->{msg}->{type}};
+	$new->{msg}->{data} = $data;
 	$new->send
 }
 

@@ -1,4 +1,4 @@
-package CommandWS::Tree;
+package Mojolicious::Plugin::CommandWS::Tree;
 
 my %cmds;
 

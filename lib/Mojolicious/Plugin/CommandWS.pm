@@ -2,8 +2,8 @@ package Mojolicious::Plugin::CommandWS;
 use Mojo::Base 'Mojolicious::Plugin';
 use JSON::Validator;
 use Mojo::Util qw/dumper/;
-use CommandWS::Tree;
-use CommandWS;
+use Mojolicious::Plugin::CommandWS::Command;
+use Mojolicious::Plugin::CommandWS::Tree;
 use strict;
 
 our $VERSION = '0.01';
@@ -12,7 +12,7 @@ sub register {
 	my ($self, $app, $conf) = @_;
 	my $r = $app->routes;
 
-	my $cmds = CommandWS::Tree->new;
+	my $cmds = Mojolicious::Plugin::CommandWS::Tree->new;
 
 	$cmds->command(log => sub{
 		my $self	= shift;
@@ -36,7 +36,7 @@ sub register {
 				# 	data		=> {data}
 				# }
 
-				my $msgCMD = CommandWS->new(
+				my $msgCMD = Mojolicious::Plugin::CommandWS::Command->new(
 					tx	=> $tx,
 					msg	=> $msg,
 					cmds	=> $cmds,
