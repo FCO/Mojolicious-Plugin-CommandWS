@@ -1,10 +1,26 @@
 package Mojolicious::Plugin::CommandWS::Command;
+use Mojo::Util qw/dumper sha1_sum/;
 
 my %flow = (
 	__init__	=> "REQUEST",
 	REQUEST		=> "RESPONSE",
 	RESPONSE	=> "CONFIRM"
 );
+
+my @fields2check = qw/cmd trans_id version type data/;
+
+sub flow {
+	my $class	= shift;
+	my $type	= shift;
+
+	$type = $class unless $type;
+
+	if(defined $type) {
+		return $flow{$type};
+	}
+
+	%flow
+}
 
 my $validator	= JSON::Validator->new;
 $validator->schema("data://Mojolicious::Plugin::CommandWS::Command/msg.schema.json");
@@ -35,13 +51,18 @@ sub data {
 sub reply {
 	my $self = shift;
 	my $data = shift;
-	die "End of type flow" unless exists $flow{$self->{msg}->{type}};
+	die "End of type flow" unless defined flow($self->{msg}->{type});
 
 	my $new = bless { %$self }, ref $self;
 
-	$new->{msg}->{type} = $flow{$new->{msg}->{type}};
-	$new->{msg}->{data} = $data;
+	$new->{msg}->{type}	= flow($new->{msg}->{type});
+	$new->{msg}->{data}	= $data;
 	$new->send
+}
+
+sub generate_checksum {
+	my $self = shift;
+	sha1_sum join $/, map {dumper $self->{$_}} @fields2check
 }
 
 sub error {
@@ -54,12 +75,15 @@ sub error {
 }
 
 sub send {
-	my $self = shift;
+	my $self	= shift;
+	$checksum	= $self->generate_checksum;
 	$self->{tx}->send({json => {
+		version		=> 1,
 		cmd		=> $self->{msg}->{cmd},
 		type		=> $self->{msg}->{type},
 		trans_id	=> $self->{msg}->{trans_id},
 		data		=> $self->{msg}->{data},
+		checksum	=> $checksum,
 	}});
 	$self
 }
@@ -74,6 +98,10 @@ __DATA__
 	"type":		"object",
 	"required":	["cmd", "trans_id"],
 	"properties":	{
+		"version":		{
+			"type":		"integer",
+			"minimum":	1
+		},
 		"cmd":		{
 			"type":		"string"
 		},
@@ -84,11 +112,10 @@ __DATA__
 			"type":		"string",
 			"patern":	"^\\w{40}$"
 		},
+		"checksum":	{
+			"type":		"string",
+			"patern":	"^\\w{40}$"
+		},
 		"data":		{}
 	}
 }
-
-@@ CommandWS.js
-
-// CommandWS.js
-
