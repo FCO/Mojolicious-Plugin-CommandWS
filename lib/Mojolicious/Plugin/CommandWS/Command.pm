@@ -1,5 +1,15 @@
 package Mojolicious::Plugin::CommandWS::Command;
+use Mojolicious::Plugin::CommandWS::Tree;
 use Mojo::Util qw/dumper sha1_sum/;
+use JSON::Validator;
+
+my %cmds;
+$cmds{REQUEST}	= Mojolicious::Plugin::CommandWS::Tree->new;
+$cmds{RESPONSE}	= Mojolicious::Plugin::CommandWS::Tree->new;
+
+sub requests {
+	$cmds{REQUEST}
+}
 
 my %flow = (
 	__init__	=> "REQUEST",
@@ -40,7 +50,10 @@ sub new {
 
 sub exec {
 	my $self = shift;
-	$self->{cmds}->run_command($self->{msg}->{cmd} => $self->{c} => $self);
+	eval {
+		return $cmds{$self->{msg}->{type}}->run_command($self->{msg}->{cmd} => $self->{c} => $self) if exists $cmds{$self->{msg}->{type}};
+	};
+	$self->error($@) if $@;
 }
 
 sub data {
@@ -49,14 +62,33 @@ sub data {
 }
 
 sub reply {
-	my $self = shift;
-	my $data = shift;
+	my $self	= shift;
+	my $data	= shift;
+	my $cb		= shift;
 	die "End of type flow" unless defined flow($self->{msg}->{type});
 
 	my $new = bless { %$self }, ref $self;
 
 	$new->{msg}->{type}	= flow($new->{msg}->{type});
 	$new->{msg}->{data}	= $data;
+
+	if(defined $cb) {
+		$cmds{$new->{msg}->{type}}
+			->conditional(sub {
+				my $self	= shift;
+				my $reply	= shift;
+
+				$reply->data->{trans_id} eq $new->{msg}->{trans_id}
+			})
+			->command(sub {
+				my $self	= shift;
+				my $reply	= shift;
+
+				$self->$cb($reply)
+			})
+		;
+	}
+
 	$new->send
 }
 
@@ -66,11 +98,13 @@ sub generate_checksum {
 }
 
 sub error {
+	print "error(@_)$/";
 	my $self = shift;
 	my $data = shift;
 
 	my $new = bless { %$self }, ref $self;
 	$new->{msg}->{type} = "ERROR";
+	$new->{msg}->{data} = $data;
 	$new->send
 }
 
