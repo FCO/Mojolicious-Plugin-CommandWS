@@ -35,6 +35,23 @@ sub flow {
 my $validator	= JSON::Validator->new;
 $validator->schema("data://Mojolicious::Plugin::CommandWS::Command/msg.schema.json");
 
+sub emit {
+	my $class;
+	if($_[0] eq __PACKAGE__) {
+		$class = shift;
+	}
+	my $event	= shift;
+	my $data	= shift;
+
+	__PACKAGE__->new(
+		version		=> 1,
+		cmd		=> $event,
+		type		=> "EVENT",
+		trans_id	=> generate_trans_id($event),
+		data		=> $data,
+	)
+}
+
 sub new {
 	my $class	= shift;
 	my %data	= @_;
@@ -46,6 +63,14 @@ sub new {
 	}
 
 	$self
+}
+
+{
+	my $counter;
+	sub generate_trans_id {
+		my $self = shift;
+		sha1_sum join " - ", "CommandWS", $self, localtime time, rand, $counter++
+	}
 }
 
 sub exec {
@@ -98,7 +123,6 @@ sub generate_checksum {
 }
 
 sub error {
-	print "error(@_)$/";
 	my $self = shift;
 	my $data = shift;
 
@@ -112,7 +136,7 @@ sub send {
 	my $self	= shift;
 	$checksum	= $self->generate_checksum;
 	$self->{tx}->send({json => {
-		version		=> 1,
+		version		=> $self->{msg}->{version} // 1,
 		cmd		=> $self->{msg}->{cmd},
 		type		=> $self->{msg}->{type},
 		trans_id	=> $self->{msg}->{trans_id},
@@ -140,7 +164,7 @@ __DATA__
 			"type":		"string"
 		},
 		"type": {
-			"enum":		["REQUEST", "RESPONSE", "CONFIRM"]
+			"enum":		["REQUEST", "RESPONSE", "CONFIRM", "EVENT", "RECEIVED"]
 		},
 		"trans_id":	{
 			"type":		"string",

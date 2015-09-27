@@ -2,12 +2,17 @@ package Mojolicious::Plugin::CommandWS;
 use Mojo::Base 'Mojolicious::Plugin';
 use Mojo::Util qw/dumper/;
 use Mojolicious::Plugin::CommandWS::Command;
+use File::Basename 'dirname';
+use File::Spec::Functions 'catdir';
 
 our $VERSION = '0.01';
 
 sub register {
 	my ($self, $app, $conf) = @_;
 	my $r = $app->routes;
+
+	my $base = catdir dirname(__FILE__), 'CommandWS';
+	push @{$app->static->paths},   catdir($base, 'public');
 
 	my $cmds = Mojolicious::Plugin::CommandWS::Command::requests();
 
@@ -25,7 +30,7 @@ sub register {
 				my $tx	= shift;
 				my $msg	= shift;
 
-				print dumper $msg;
+				print "MSG: <[", dumper($msg), "]>", $/;
 
 				# msg:
 				# {
@@ -52,11 +57,3 @@ sub register {
 }
 
 42
-
-__DATA__
-
-@@bla.js
-blablabla
-
-@@test.txt
-testing
