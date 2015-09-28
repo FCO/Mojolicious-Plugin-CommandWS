@@ -4,7 +4,28 @@ use JSON::Validator;
 my %cmds;
 
 sub list_commands {
-	keys %cmds
+	my $self = shift;
+	my %ret;
+	for my $cmd(keys %cmds) {
+		$ret{$cmd}{$_} = [ $cmds{$cmd}->get_attr($_) ] for qw/arguments schema data/;
+	}
+	\%ret
+}
+
+sub get_attr {
+	my $self = shift;
+	my $attr = shift;
+	die "Invalid attr" unless grep {$attr eq $_} qw/arguments schema data/;
+
+	my @ret;
+
+	if($self->{parent}) {
+		my @tmp = $self->{parent}->get_attr($attr);
+		push @ret, @tmp if @tmp
+	}
+	my @tmp = grep {defined} ref $self->{$attr} eq "ARRAY" ? @{ $self->{$attr} } : $self->{$attr};
+	push @ret, @tmp if @tmp;
+	@ret;
 }
 
 sub run_command {
@@ -42,6 +63,28 @@ sub new {
 	}, $class;
 }
 
+sub arguments {
+	my $self	= shift;
+	my @arguments	= shift;
+
+	my $new = __PACKAGE__->new(
+		arguments	=> [@arguments],
+		parent		=> $self,
+	);
+	$new
+}
+
+sub data {
+	my $self	= shift;
+	my $data	= shift;
+
+	my $new = __PACKAGE__->new(
+		data	=> [@arguments],
+		parent	=> $self,
+	);
+	$new
+}
+
 sub conditional {
 	my $self	= shift;
 	my $func	= shift;
@@ -59,7 +102,7 @@ sub schema {
 
 	my $schema_obj = JSON::Validator->new;
 	$schema_obj->schema($schema);
-	$self->conditional(sub {
+	my $new = $self->conditional(sub {
 		my $self	= shift;
 		my $msg		= shift;
 
@@ -68,6 +111,8 @@ sub schema {
 		}
 		1
 	});
+	$new->{schema} = $schema;
+	$new
 }
 
 sub command {

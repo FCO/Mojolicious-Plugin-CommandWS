@@ -5,19 +5,30 @@
 			(function() {
 				var cmd = new CommandWS("ws://127.0.0.1:3000/ws");
 				cmd.on("photolink", function(data) {
-					alert(JSON.stringify(data));
+					document.write(JSON.stringify(data) + "<BR>");
 				});
 				cmd.on("cmd1", function(cmd) {
 					if(cmd.error)
-						alert("cmd1(err): " + JSON.stringify(cmd.error));
+						document.write("cmd1(err): " + JSON.stringify(cmd.error) + "<BR>");
 					else
-						alert("cmd1 (ok): " + JSON.stringify(cmd.data));
+						document.write("cmd1 (ok): " + JSON.stringify(cmd.data) + "<BR>");
+					document.write("<span id=counter>");
 				});
-				cmd.on("event1", function(count){ console.log("event1: %d", count.data)});
+				cmd.on("cmd2", function(cmd) {
+					if(cmd.error)
+						document.write("cmd2(err): " + JSON.stringify(cmd.error) + "<BR>");
+					else
+						document.write("cmd2 (ok): " + JSON.stringify(cmd.data) + "<BR>");
+					document.write("<span id=counter>");
+				});
+				cmd.on("event1", function(count){
+					document.querySelector("#counter").innerHTML = count.data;
+				});
 				cmd.on("open", function() {
-					alert("on open!!!");
+					document.write("on open!!!<br>");
 					this.cmd.cmd1({api_key: "1234", auth_key: "2148635d265e13a9ebd231bdc13069552164b881"})
 					this.cmd.subscribe_event1();
+					this.cmd.cmd2("teste ola mundo");
 				});;
 			})();
 		</script>

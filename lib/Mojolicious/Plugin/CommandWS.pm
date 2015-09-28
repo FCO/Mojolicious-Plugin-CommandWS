@@ -34,8 +34,7 @@ sub register {
 		my $self	= shift;
 		my $msg		= shift;
 
-		print "list commands$/";
-		$msg->reply([$cmds->list_commands])
+		$msg->reply($cmds->list_commands)
 	});
 
 	$r->websocket($conf->{path})
@@ -45,7 +44,7 @@ sub register {
 				my $tx	= shift;
 				my $msg	= shift;
 
-				print "MSG: <[", dumper($msg), "]>", $/;
+				#print "MSG: <[", dumper($msg), "]>", $/;
 
 				# msg:
 				# {
