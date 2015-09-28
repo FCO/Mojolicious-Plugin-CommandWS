@@ -2,6 +2,10 @@ package Mojolicious::Plugin::CommandWS::Tree;
 
 my %cmds;
 
+sub list_commands {
+	keys %cmds
+}
+
 sub run_command {
 	my $self	= shift;
 	my $command	= shift;

@@ -119,7 +119,7 @@ sub reply {
 
 sub generate_checksum {
 	my $self = shift;
-	sha1_sum join $/, map {dumper $self->{$_}} @fields2check
+	sha1_sum join $/, map {dumper $self->{msg}->{$_}} @fields2check
 }
 
 sub error {

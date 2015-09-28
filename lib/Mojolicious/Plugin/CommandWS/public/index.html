@@ -4,13 +4,13 @@
 		<script>
 			(function() {
 				var cmd = new CommandWS("ws://127.0.0.1:3000/ws");
-				cmd.on("open", function() {
-					alert("on open!!!");
-					Command.sendCMD(this, "cmd1", {api_key: "1234", auth_key: "2148635d265e13a9ebd231bdc13069552164b881"})
-				});;
 				cmd.on("photolink", function(data) {
 					alert(JSON.stringify(data));
 				});
+				cmd.on("open", function() {
+					alert("on open!!!");
+					this.cmd.cmd1({api_key: "1234", auth_key: "2148635d265e13a9ebd231bdc13069552164b881"})
+				});;
 			})();
 		</script>
 	</body>

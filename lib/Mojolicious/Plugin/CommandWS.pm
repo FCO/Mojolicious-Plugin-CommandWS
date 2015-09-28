@@ -16,11 +16,23 @@ sub register {
 
 	my $cmds = Mojolicious::Plugin::CommandWS::Command::requests();
 
+	for my $conditional(exists $conf->{conditional} ? ref $conf->{conditional} eq "ARRAY" ? @{ $conf->{conditional} } : $conf->{conditional} : ()) {
+		$cmds = $cmds->conditional($conditional);
+	}
+
 	$cmds->command(log => sub{
 		my $self	= shift;
 		my $msg		= shift;
 
 		print $msg->{msg}->{trans_id}, ": ", dumper $msg->data
+	});
+
+	$cmds->command(list_commands => sub{
+		my $self	= shift;
+		my $msg		= shift;
+
+		print "list commands$/";
+		$msg->reply([$cmds->list_commands])
 	});
 
 	$r->websocket($conf->{path})
