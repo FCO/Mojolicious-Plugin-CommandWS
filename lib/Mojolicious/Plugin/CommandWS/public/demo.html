@@ -14,13 +14,13 @@
 						document.write("cmd1 (ok): " + JSON.stringify(cmd.data) + "<BR>");
 					document.write("<span id=counter>");
 				});
-				cmd.on("cmd2", function(cmd) {
-					if(cmd.error)
-						document.write("cmd2(err): " + JSON.stringify(cmd.error) + "<BR>");
-					else
-						document.write("cmd2 (ok): " + JSON.stringify(cmd.data) + "<BR>");
-					document.write("<span id=counter>");
-				});
+				//cmd.on("cmd2", function(cmd) {
+				//	if(cmd.error)
+				//		document.write("cmd2(err): " + JSON.stringify(cmd.error) + "<BR>");
+				//	else
+				//		document.write("cmd2 (ok): " + JSON.stringify(cmd.data) + "<BR>");
+				//	document.write("<span id=counter>");
+				//});
 				cmd.on("event1", function(count){
 					document.querySelector("#counter").innerHTML = count.data;
 				});
