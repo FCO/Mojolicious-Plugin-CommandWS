@@ -35,23 +35,6 @@ sub flow {
 my $validator	= JSON::Validator->new;
 $validator->schema("data://Mojolicious::Plugin::CommandWS::Command/msg.schema.json");
 
-sub emit {
-	my $class;
-	if($_[0] eq __PACKAGE__) {
-		$class = shift;
-	}
-	my $event	= shift;
-	my $data	= shift;
-
-	__PACKAGE__->new(
-		version		=> 1,
-		cmd		=> $event,
-		type		=> "EVENT",
-		trans_id	=> generate_trans_id($event),
-		data		=> $data,
-	)
-}
-
 sub new {
 	my $class	= shift;
 	my %data	= @_;
@@ -84,6 +67,18 @@ sub exec {
 sub data {
 	my $self = shift;
 	$self->{msg}->{data}
+}
+
+sub emit {
+	my $self	= shift;
+	my $event	= shift;
+	my $data	= shift;
+
+	my $new = bless { %$self }, ref $self;
+	$new->{msg}->{cmd}	= $event;
+	$new->{msg}->{type}	= "EVENT";
+	$new->{msg}->{data}	= $data;
+	$new->send
 }
 
 sub reply {

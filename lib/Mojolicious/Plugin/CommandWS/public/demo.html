@@ -13,9 +13,11 @@
 					else
 						alert("cmd1 (ok): " + JSON.stringify(cmd.data));
 				});
+				cmd.on("event1", function(count){ console.log("event1: %d", count.data)});
 				cmd.on("open", function() {
 					alert("on open!!!");
 					this.cmd.cmd1({api_key: "1234", auth_key: "2148635d265e13a9ebd231bdc13069552164b881"})
+					this.cmd.subscribe_event1();
 				});;
 			})();
 		</script>
