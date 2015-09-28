@@ -92,6 +92,7 @@ sub reply {
 	my $cb		= shift;
 	die "End of type flow" unless defined flow($self->{msg}->{type});
 
+	warn "REPLY!$/";
 	my $new = bless { %$self }, ref $self;
 
 	$new->{msg}->{type}	= flow($new->{msg}->{type});

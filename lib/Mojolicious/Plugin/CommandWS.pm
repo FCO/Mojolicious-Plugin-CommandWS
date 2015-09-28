@@ -12,10 +12,13 @@ sub register {
 	my $r = $app->routes;
 
 	my $base = catdir dirname(__FILE__), 'CommandWS';
-	push @{$app->static->paths},   catdir($base, 'public');
+	push @{$app->static->paths}, catdir($base, 'public');
 
 	my $cmds = Mojolicious::Plugin::CommandWS::Command::requests();
 
+	for my $schema(exists $conf->{schema} ? ref $conf->{schema} eq "ARRAY" ? @{ $conf->{schema} } : $conf->{schema} : ()) {
+		$cmds = $cmds->schema($schema);
+	}
 	for my $conditional(exists $conf->{conditional} ? ref $conf->{conditional} eq "ARRAY" ? @{ $conf->{conditional} } : $conf->{conditional} : ()) {
 		$cmds = $cmds->conditional($conditional);
 	}

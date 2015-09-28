@@ -7,6 +7,12 @@
 				cmd.on("photolink", function(data) {
 					alert(JSON.stringify(data));
 				});
+				cmd.on("cmd1", function(cmd) {
+					if(cmd.error)
+						alert("cmd1(err): " + JSON.stringify(cmd.error));
+					else
+						alert("cmd1 (ok): " + JSON.stringify(cmd.data));
+				});
 				cmd.on("open", function() {
 					alert("on open!!!");
 					this.cmd.cmd1({api_key: "1234", auth_key: "2148635d265e13a9ebd231bdc13069552164b881"})
