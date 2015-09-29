@@ -11,6 +11,8 @@ sub register {
 	my ($self, $app, $conf) = @_;
 	my $r = $app->routes;
 
+	push @{$app->static->classes}, "Mojolicious::Plugin::CommandWS::Command";
+
 	my $base = catdir dirname(__FILE__), 'CommandWS';
 	push @{$app->static->paths}, catdir($base, 'public');
 
