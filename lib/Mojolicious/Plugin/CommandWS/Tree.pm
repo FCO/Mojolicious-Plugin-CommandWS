@@ -3,11 +3,13 @@ use JSON::Validator;
 
 my %cmds;
 
+my @args = qw/arguments schema data type/;
+
 sub list_commands {
 	my $self = shift;
 	my %ret;
 	for my $cmd(keys %cmds) {
-		$ret{$cmd}{$_} = [ $cmds{$cmd}->get_attr($_) ] for qw/arguments schema data/;
+		$ret{$cmd}{$_} = [ $cmds{$cmd}->get_attr($_) ] for @args;
 	}
 	\%ret
 }
@@ -15,7 +17,7 @@ sub list_commands {
 sub get_attr {
 	my $self = shift;
 	my $attr = shift;
-	die "Invalid attr" unless grep {$attr eq $_} qw/arguments schema data/;
+	die "Invalid attr" unless grep {$attr eq $_} @args;
 
 	my @ret;
 
@@ -93,6 +95,21 @@ sub conditional {
 		conditional	=> $func,
 		parent		=> $self,
 	);
+	$new
+}
+
+sub type {
+	my $self = shift;
+	my $type = uc shift;
+
+	die "Type does not exists" unless exists $Mojolicious::Plugin::CommandWS::Command::flow{$type};
+	my $new = $self->conditional(sub {
+		my $self	= shift;
+		my $msg		= shift;
+
+		$msg->{msg}->{type} eq $type;
+	});
+	$new->{type} = $type;
 	$new
 }
 

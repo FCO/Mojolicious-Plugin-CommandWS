@@ -44,7 +44,7 @@ sub register {
 				my $tx	= shift;
 				my $msg	= shift;
 
-				#print "MSG: <[", dumper($msg), "]>", $/;
+				print "MSG: <[", dumper($msg), "]>", $/;
 
 				# msg:
 				# {

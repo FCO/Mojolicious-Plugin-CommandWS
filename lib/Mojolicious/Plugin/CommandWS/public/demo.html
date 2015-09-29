@@ -4,6 +4,16 @@
 		<script>
 			(function() {
 				var cmd = new CommandWS("ws://127.0.0.1:3000/ws");
+				cmd.on("cmd1", function(data) {
+					var div = document.createElement("DIV");
+					div.innerHTML = JSON.stringify(data);
+					document.querySelector("div#responses").appendChild(div);
+				});
+				cmd.on("event1", function(data) {
+					var div = document.createElement("DIV");
+					div.innerHTML = JSON.stringify(data);
+					document.querySelector("div#responses").appendChild(div);
+				});
 				cmd.on("open", function() {
 					var box = document.querySelector("div#cmd_box");
 					Object.keys(this.cmd).forEach(function(cmd) {
@@ -19,8 +29,15 @@
 						var data	= box.querySelector("textarea#data").value;
 
 						var response = document.createElement("TD");
-						var trans_id	= cmd.cmd[command](JSON.parse(data), function(resp) {
-							response.innerHTML = resp.data;
+						var jsonData;
+						try {
+							jsonData = JSON.parse(data);
+						}catch(e){};
+						var trans_id	= cmd.cmd[command](jsonData, function(resp) {
+							if(resp.error)
+								response.innerHTML = "<font color=red>" + JSON.stringify(resp.error) + "</font>";
+							else
+								response.innerHTML = JSON.stringify(resp.data);
 						});
 
 						var hist	= document.createElement("DIV");
@@ -69,5 +86,6 @@
 				</tr>
 			</table>
 		</div>
+		<div id=responses></div>
 	</body>
 </html>

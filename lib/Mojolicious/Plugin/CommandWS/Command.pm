@@ -3,18 +3,19 @@ use Mojolicious::Plugin::CommandWS::Tree;
 use Mojo::Util qw/dumper sha1_sum/;
 use JSON::Validator;
 
-my %cmds;
-$cmds{REQUEST}	= Mojolicious::Plugin::CommandWS::Tree->new;
-$cmds{RESPONSE}	= Mojolicious::Plugin::CommandWS::Tree->new;
+my $cmds = Mojolicious::Plugin::CommandWS::Tree->new;
 
 sub requests {
-	$cmds{REQUEST}
+	$cmds
 }
 
-my %flow = (
+our %flow = (
 	__init__	=> "REQUEST",
 	REQUEST		=> "RESPONSE",
-	RESPONSE	=> "CONFIRM"
+	RESPONSE	=> "CONFIRM",
+	__subs__	=> "SUBSCRIBE",
+	SUBSCRIBE	=> "EVENT",
+	EVENT		=> "EVENT",
 );
 
 my @fields2check = qw/cmd trans_id version type data/;
@@ -59,7 +60,7 @@ sub new {
 sub exec {
 	my $self = shift;
 	eval {
-		return $cmds{$self->{msg}->{type}}->run_command($self->{msg}->{cmd} => $self->{c} => $self) if exists $cmds{$self->{msg}->{type}};
+		return $cmds->run_command($self->{msg}->{cmd} => $self->{c} => $self);
 	};
 	$self->error($@) if $@;
 }
@@ -92,9 +93,11 @@ sub reply {
 
 	$new->{msg}->{type}	= flow($new->{msg}->{type});
 	$new->{msg}->{data}	= $data;
+	$new->{msg}->{counter}++;
 
 	if(defined $cb) {
-		$cmds{$new->{msg}->{type}}
+		$cmds
+			->type(flow($new->{msg}->{type}))
 			->conditional(sub {
 				my $self	= shift;
 				my $reply	= shift;
@@ -156,11 +159,15 @@ __DATA__
 			"type":		"integer",
 			"minimum":	1
 		},
+		"counter":	{
+			"type":		"integer",
+			"minimum":	0
+		},
 		"cmd":		{
 			"type":		"string"
 		},
 		"type": {
-			"enum":		["REQUEST", "RESPONSE", "CONFIRM", "EVENT", "RECEIVED"]
+			"enum":		["REQUEST", "RESPONSE", "CONFIRM", "EVENT", "RECEIVED", "SUBSCRIBE"]
 		},
 		"trans_id":	{
 			"type":		"string",
