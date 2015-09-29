@@ -4,33 +4,70 @@
 		<script>
 			(function() {
 				var cmd = new CommandWS("ws://127.0.0.1:3000/ws");
-				cmd.on("photolink", function(data) {
-					document.write(JSON.stringify(data) + "<BR>");
-				});
-				cmd.on("cmd1", function(cmd) {
-					if(cmd.error)
-						document.write("cmd1(err): " + JSON.stringify(cmd.error) + "<BR>");
-					else
-						document.write("cmd1 (ok): " + JSON.stringify(cmd.data) + "<BR>");
-					document.write("<span id=counter>");
-				});
-				//cmd.on("cmd2", function(cmd) {
-				//	if(cmd.error)
-				//		document.write("cmd2(err): " + JSON.stringify(cmd.error) + "<BR>");
-				//	else
-				//		document.write("cmd2 (ok): " + JSON.stringify(cmd.data) + "<BR>");
-				//	document.write("<span id=counter>");
-				//});
-				cmd.on("event1", function(count){
-					document.querySelector("#counter").innerHTML = count.data;
-				});
 				cmd.on("open", function() {
-					document.write("on open!!!<br>");
-					this.cmd.cmd1({api_key: "1234", auth_key: "2148635d265e13a9ebd231bdc13069552164b881"})
-					this.cmd.subscribe_event1();
-					this.cmd.cmd2("teste ola mundo");
-				});;
+					var box = document.querySelector("div#cmd_box");
+					Object.keys(this.cmd).forEach(function(cmd) {
+						console.log(cmd);
+						var opt = document.createElement("OPTION");
+						opt.text	= cmd;
+						opt.value	= cmd;
+						box.querySelector("select#cmd").appendChild(opt);
+					});
+					box.querySelector("input#send").addEventListener("click", function() {
+						var sel		= box.querySelector("select#cmd");
+						var command	= sel.options[sel.selectedIndex].text;
+						var data	= box.querySelector("textarea#data").value;
+
+						var response = document.createElement("TD");
+						var trans_id	= cmd.cmd[command](JSON.parse(data), function(resp) {
+							response.innerHTML = resp.data;
+						});
+
+						var hist	= document.createElement("DIV");
+						var tab		= document.createElement("TABLE");
+						hist.appendChild(tab);
+
+						var tr = document.createElement("TR");
+						tab.appendChild(tr);
+
+						var title = document.createElement("TD");
+						title.innerHTML = "Command";
+						tr.appendChild(title);
+
+						var value = document.createElement("TD");
+						value.innerHTML = command + "(" + data + ")";
+						tr.appendChild(value);
+
+						var tr2 = document.createElement("TR");
+						tab.appendChild(tr2);
+
+						var title2 = document.createElement("TD");
+						title2.innerHTML = "Response";
+						tr2.appendChild(title2);
+
+						tr2.appendChild(response);
+
+						document.querySelector("div#history").appendChild(hist);
+					});
+				});
 			})();
 		</script>
+		<div id=history></div>
+		<div id=cmd_box>
+			<table>
+				<tr>
+					<form id=cmd_form>
+						<td>Command</td>
+						<td><select id=cmd><option value="">-</option></select></td>
+						<td>Data</td>
+						<td><textarea id=data></textarea><td>
+						<td><input id=send type=submit value="send" onclick="return false"/><td>
+					</form>
+				</tr>
+				<tr>
+					<div class=answer></div>
+				</tr>
+			</table>
+		</div>
 	</body>
 </html>
