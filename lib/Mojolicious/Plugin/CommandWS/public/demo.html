@@ -7,12 +7,12 @@
 				var cmd = new CommandWS("ws://" + location.host + "/ws");
 				cmd.on("cmd1", function(data) {
 					var div = document.createElement("DIV");
-					div.innerHTML = JSON.stringify(data);
+					div.innerHTML = JSON.stringify(data.msg);
 					document.querySelector("div#responses").appendChild(div);
 				});
 				cmd.on("event1", function(data) {
 					var div = document.createElement("DIV");
-					div.innerHTML = JSON.stringify(data);
+					div.innerHTML = JSON.stringify(data.msg);
 					document.querySelector("div#responses").appendChild(div);
 				});
 				cmd.on("open", function() {
@@ -30,10 +30,12 @@
 						var data	= box.querySelector("textarea#data").value;
 
 						var response = document.createElement("TD");
-						var jsonData;
+						var jsonData, invalidJson = false;
 						try {
 							jsonData = JSON.parse(data);
-						}catch(e){};
+						} catch(e){
+							if(data != "") invalidJson = e.message;
+						};
 						var trans_id	= cmd.cmd[command](jsonData, function(resp) {
 							if(resp.error)
 								response.innerHTML = "<font color=red>" + JSON.stringify(resp.error) + "</font>";
@@ -53,6 +55,10 @@
 						tr.appendChild(title);
 
 						var value = document.createElement("TD");
+						if(invalidJson) {
+							console.warn(invalidJson);
+							data = "<font color=red>" + data + "</font>";
+						}
 						value.innerHTML = command + "(" + data + ")";
 						tr.appendChild(value);
 
