@@ -5,12 +5,7 @@
 		<script>
 			(function() {
 				var cmd = new CommandWS("ws://" + location.host + "/ws");
-				cmd.on("cmd1", function(data) {
-					var div = document.createElement("DIV");
-					div.innerHTML = JSON.stringify(data.msg);
-					document.querySelector("div#responses").appendChild(div);
-				});
-				cmd.on("event1", function(data) {
+				cmd.on("command", function(data) {
 					var div = document.createElement("DIV");
 					div.innerHTML = JSON.stringify(data.msg);
 					document.querySelector("div#responses").appendChild(div);
