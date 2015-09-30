@@ -4,7 +4,7 @@
 		<script src="https://raw.github.com/geraintluff/tv4/master/tv4.min.js"></script>
 		<script>
 			(function() {
-				var cmd = new CommandWS("ws://127.0.0.1:3000/ws");
+				var cmd = new CommandWS("ws://" + location.host + "/ws");
 				cmd.on("cmd1", function(data) {
 					var div = document.createElement("DIV");
 					div.innerHTML = JSON.stringify(data);
