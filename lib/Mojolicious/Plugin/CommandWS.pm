@@ -1,15 +1,17 @@
 package Mojolicious::Plugin::CommandWS;
 use Mojo::Base 'Mojolicious::Plugin';
-use Mojo::Util qw/dumper/;
+use Mojo::Util qw/dumper sha1_sum/;
 use Mojolicious::Plugin::CommandWS::Command;
 use File::Basename 'dirname';
 use File::Spec::Functions 'catdir';
+use Mojo::EventEmitter;
 
 our $VERSION = '0.01';
 
 sub register {
 	my ($self, $app, $conf) = @_;
-	my $r = $app->routes;
+	my $r	= $app->routes;
+	$app->attr(events => sub{ Mojo::EventEmitter->new });
 
 	push @{$app->static->classes}, "Mojolicious::Plugin::CommandWS::Command";
 
@@ -39,25 +41,27 @@ sub register {
 		$msg->reply($cmds->list_commands)
 	});
 
+	# msg:
+	# {
+	# 	cmd		=> "command_name",
+	#	type		=> "REQUEST",
+	# 	trans_id	=> "1234567890123456789012345678901234567890",
+	# 	data		=> {data},
+	#	checksum	=> "1234567890123456789012345678901234567890"
+	# }
+
 	$r->websocket($conf->{path})
-		->to(cb => sub{
+		->to(cb => sub {
 			my $c	= shift;
+			$c->inactivity_timeout(3600);
 			$c->on(json => sub{
 				my $tx	= shift;
 				my $msg	= shift;
 
-				print "MSG: <[", dumper($msg), "]>", $/;
-
-				# msg:
-				# {
-				# 	cmd		=> "command_name",
-				#	type		=> "REQUEST",
-				# 	trans_id	=> "1234567890123456789012345678901234567890",
-				# 	data		=> {data},
-				#	checksum	=> "1234567890123456789012345678901234567890"
-				# }
+				#print "MSG: <[", dumper($msg), "]>", $/;
 
 				my $msgCMD = Mojolicious::Plugin::CommandWS::Command->new(
+					via	=> "ws",
 					tx	=> $tx,
 					msg	=> $msg,
 					cmds	=> $cmds,
@@ -66,6 +70,41 @@ sub register {
 
 				$msgCMD->exec
 			});
+		})
+	;
+
+	my $lp_counter;
+	$r->get($conf->{path})
+		->to(cb => sub {
+			my $c	= shift;
+			my $lp	= sha1_sum join " - ", $c, localtime time, rand, $lp_counter++;
+			$c->write_chunk("lp($lp)$/");
+			$c->inactivity_timeout(3600);
+			my $event = "longpoll $lp";
+			my $cb = $c->app->events->on($event, sub{
+				shift;
+				my $msg = shift;
+
+				my $msgCMD = Mojolicious::Plugin::CommandWS::Command->new(
+					via	=> "lp",
+					tx	=> $c->tx,
+					msg	=> $msg,
+					cmds	=> $cmds,
+					c	=> $c,
+				);
+
+				$msgCMD->exec
+			});
+			$c->on(finish => sub {$c->app->events->unsubscribe($event => $cb)});
+		})
+	;
+	$r->post($conf->{path})
+		->to(cb => sub {
+			my $c		= shift;
+			my $data	= $c->req->json;
+			my $lp		= delete $data->{lp};
+			$c->app->events->emit("longpoll $lp", $data);
+			$c->render(status => 200, json => {ok => \1})
 		})
 	;
 

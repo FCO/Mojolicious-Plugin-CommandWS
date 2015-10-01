@@ -33,6 +33,7 @@ $cmds
 		my $self = shift;
 		my $data = shift;
 
+		print "cmd1($data)$/";
 		$data->reply("echo: " . dumper $data->data)
 	})
 ;

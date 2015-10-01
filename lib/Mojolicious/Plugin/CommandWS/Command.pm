@@ -1,6 +1,7 @@
 package Mojolicious::Plugin::CommandWS::Command;
 use Mojolicious::Plugin::CommandWS::Tree;
 use Mojo::Util qw/dumper sha1_sum/;
+use Mojo::JSON qw/encode_json/;
 use JSON::Validator;
 
 my $cmds = Mojolicious::Plugin::CommandWS::Tree->new;
@@ -43,7 +44,8 @@ sub new {
 	my $self = bless { %data }, $class;
 
 	if(my @errors = $validator->validate($data{msg})) {
-		return $self->error([@errors])
+		$self->error([@errors]);
+		return
 	}
 
 	$self
@@ -88,7 +90,6 @@ sub reply {
 	my $cb		= shift;
 	die "End of type flow" unless defined flow($self->{msg}->{type});
 
-	warn "REPLY!$/";
 	my $new = bless { %$self }, ref $self;
 
 	$new->{msg}->{type}	= flow($new->{msg}->{type});
@@ -134,15 +135,26 @@ sub error {
 sub send {
 	my $self	= shift;
 	$checksum	= $self->generate_checksum;
-	$self->{tx}->send({json => {
+	$self->_send({
 		version		=> $self->{msg}->{version} // 1,
 		cmd		=> $self->{msg}->{cmd},
 		type		=> $self->{msg}->{type},
 		trans_id	=> $self->{msg}->{trans_id},
 		data		=> $self->{msg}->{data},
 		checksum	=> $checksum,
-	}});
+	});
 	$self
+}
+
+sub _send {
+	my $self	= shift;
+	my $data	= shift;
+
+	if($self->{via} eq "ws") {
+		return $self->{tx}->send({json => $data})
+	} elsif($self->{via} eq "lp") {
+		return $self->{c}->write_chunk(encode_json($data) . $/)
+	}
 }
 
 42
@@ -153,7 +165,7 @@ __DATA__
 
 {
 	"type":		"object",
-	"required":	["cmd", "trans_id"],
+	"required":	["cmd", "type", "trans_id"],
 	"properties":	{
 		"version":		{
 			"type":		"integer",
