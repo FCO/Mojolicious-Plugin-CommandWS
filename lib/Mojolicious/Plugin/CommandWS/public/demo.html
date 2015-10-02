@@ -4,7 +4,7 @@
 		<script src="https://raw.github.com/geraintluff/tv4/master/tv4.min.js"></script>
 		<script>
 			(function() {
-				var cmd = new CommandWS("ws://" + location.host + "/ws");
+				var cmd = new CommandWS("/ws", location.hash == "#lp" ? "lp" : null);
 				cmd.on("command", function(data) {
 					var div = document.createElement("DIV");
 					div.innerHTML = JSON.stringify(data.msg);

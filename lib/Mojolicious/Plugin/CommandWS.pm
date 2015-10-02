@@ -74,11 +74,12 @@ sub register {
 	;
 
 	my $lp_counter;
+	my $delimiter = $conf->{delimiter} // "/*---------------------------*/";
 	$r->get($conf->{path})
 		->to(cb => sub {
 			my $c	= shift;
 			my $lp	= sha1_sum join " - ", $c, localtime time, rand, $lp_counter++;
-			$c->write_chunk("lp($lp)$/");
+			$c->write_chunk("lp($lp)[$delimiter]$/");
 			$c->inactivity_timeout(3600);
 			my $event = "longpoll $lp";
 			my $cb = $c->app->events->on($event, sub{
@@ -87,6 +88,7 @@ sub register {
 
 				my $msgCMD = Mojolicious::Plugin::CommandWS::Command->new(
 					via	=> "lp",
+					delim	=> $delimiter,
 					tx	=> $c->tx,
 					msg	=> $msg,
 					cmds	=> $cmds,

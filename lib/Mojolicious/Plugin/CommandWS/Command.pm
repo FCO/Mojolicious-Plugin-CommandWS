@@ -153,7 +153,8 @@ sub _send {
 	if($self->{via} eq "ws") {
 		return $self->{tx}->send({json => $data})
 	} elsif($self->{via} eq "lp") {
-		return $self->{c}->write_chunk(encode_json($data) . $/)
+		print "_send lp: $self->{delim}$/";
+		$self->{c}->write_chunk(encode_json($data) . $/ . $self->{delim} . $/)
 	}
 }
 

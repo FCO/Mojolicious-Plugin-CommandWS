@@ -6,19 +6,6 @@ use Mojolicious::Plugin::CommandWS::Command;
 
 my $cmds = plugin"CommandWS" => {path => "/ws"};
 
-#$cmds
-#	->schema({
-#		type		=> "string",
-#	})
-#	->command(cmd2 => sub {
-#		my $self = shift;
-#		my $data = shift;
-#
-#		print "DATA: ", dumper $data->data, $/;
-#		$data->reply("echo2: " . $data->data)
-#	})
-#;
-
 $cmds
 	->type("REQUEST")
 	->schema({
@@ -57,4 +44,4 @@ $cmds
 
 
 
-		app->start
+app->start
