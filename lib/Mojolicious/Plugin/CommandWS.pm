@@ -104,6 +104,7 @@ sub register {
 		->to(cb => sub {
 			my $c		= shift;
 			my $data	= $c->req->json;
+			print dumper $data;
 			my $lp		= delete $data->{lp};
 			$c->app->events->emit("longpoll $lp", $data);
 			$c->render(status => 200, json => {ok => \1})
