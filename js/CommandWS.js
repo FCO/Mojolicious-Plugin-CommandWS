@@ -58,6 +58,7 @@ CommandWS.prototype._parseAndEmitCmd	= function(data) {
 		var msg = JSON.parse(data);
 	} catch(e) {
 		console.error("ERROR:", e);
+		console.error("DATA :", data);
 	}
 	var cmd = new Command(this, msg);
 	this.emit(msg.cmd, cmd);
@@ -77,7 +78,9 @@ CommandWS.prototype._onReadyStateChange	= function() {
 			if (i > this._index) {
 				var newChunk = this._xhr.responseText.substr(this._index, (i - this._index));
 				this._index = i + this._delim.length;
-				this._parseAndEmitCmd(newChunk);
+				newChunk.split(this._delim).forEach(function(chunk) {
+					this._parseAndEmitCmd(chunk);
+				}.bind(this));
 			}
 		}
 	}

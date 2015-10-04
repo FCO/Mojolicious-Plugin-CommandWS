@@ -12,7 +12,7 @@
 				});
 				cmd.on("open", function() {
 					var box = document.querySelector("div#cmd_box");
-					Object.keys(this.cmd).forEach(function(cmd) {
+					Object.keys(this.cmd).sort().forEach(function(cmd) {
 						var opt = document.createElement("OPTION");
 						opt.text	= cmd;
 						opt.value	= cmd;
