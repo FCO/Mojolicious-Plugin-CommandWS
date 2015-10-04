@@ -58,7 +58,7 @@ sub register {
 				my $tx	= shift;
 				my $msg	= shift;
 
-				#print "MSG: <[", dumper($msg), "]>", $/;
+				print "MSG: <[", dumper($msg), "]>", $/;
 
 				my $msgCMD = Mojolicious::Plugin::CommandWS::Command->new(
 					via	=> "ws",
@@ -95,7 +95,7 @@ sub register {
 					c	=> $c,
 				);
 
-				$msgCMD->exec
+				$msgCMD->exec if defined $msgCMD
 			});
 			$c->on(finish => sub {$c->app->events->unsubscribe($event => $cb)});
 		})
@@ -104,7 +104,7 @@ sub register {
 		->to(cb => sub {
 			my $c		= shift;
 			my $data	= $c->req->json;
-			print dumper $data;
+			print "MSG: <[", dumper($data), "]>", $/;
 			my $lp		= delete $data->{lp};
 			$c->app->events->emit("longpoll $lp", $data);
 			$c->render(status => 200, json => {ok => \1})

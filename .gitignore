@@ -1,1 +1,2 @@
 .*.sw[op]
+/lib/Mojolicious/Plugin/CommandWS/public/*.js

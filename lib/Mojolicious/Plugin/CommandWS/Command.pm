@@ -19,7 +19,10 @@ our %flow = (
 	EVENT		=> "EVENT",
 );
 
-my @fields2check = qw/cmd trans_id version type data/;
+# TODO: fix for data
+my @fields2check = qw/cmd counter trans_id version type/;
+
+my $counter;
 
 sub flow {
 	my $class	= shift;
@@ -42,21 +45,28 @@ sub new {
 	my %data	= @_;
 
 	my $self = bless { %data }, $class;
+	$self->{msg}->{version} = 1 if not exists $self->{msg}->{version};
 
 	if(my @errors = $validator->validate($data{msg})) {
 		$self->error([@errors]);
 		return
 	}
 
+	my $chksum = $self->generate_checksum;
+	if(exists $data{msg}{checksum} and $data{msg}{checksum} ne $chksum) {
+		warn "Invalid checksum:$/";
+		warn "received: $data{msg}{checksum}$/";
+		warn "expected: $chksum$/";
+		$self->error(["Invalid checksum"]);
+		return
+	}
+
 	$self
 }
 
-{
-	my $counter;
-	sub generate_trans_id {
-		my $self = shift;
-		sha1_sum join " - ", "CommandWS", $self, localtime time, rand, $counter++
-	}
+sub generate_trans_id {
+	my $self = shift;
+	sha1_sum join " - ", "CommandWS", $self, localtime time, rand, $counter++
 }
 
 sub exec {
@@ -90,7 +100,7 @@ sub reply {
 	my $cb		= shift;
 	die "End of type flow" unless defined flow($self->{msg}->{type});
 
-	my $new = bless { %$self }, ref $self;
+	my $new = bless { %$self }, __PACKAGE__;
 
 	$new->{msg}->{type}	= flow($new->{msg}->{type});
 	$new->{msg}->{data}	= $data;
@@ -119,7 +129,9 @@ sub reply {
 
 sub generate_checksum {
 	my $self = shift;
-	sha1_sum join $/, map {dumper $self->{msg}->{$_}} @fields2check
+	my $seed = join $/, map {$self->{msg}->{$_}} @fields2check;
+	warn "seed: ", $seed, $/;
+	sha1_sum $seed
 }
 
 sub error {
@@ -137,6 +149,7 @@ sub send {
 	$checksum	= $self->generate_checksum;
 	$self->_send({
 		version		=> $self->{msg}->{version} // 1,
+		counter		=> $self->{msg}->{counter},
 		cmd		=> $self->{msg}->{cmd},
 		type		=> $self->{msg}->{type},
 		trans_id	=> $self->{msg}->{trans_id},
@@ -150,6 +163,7 @@ sub _send {
 	my $self	= shift;
 	my $data	= shift;
 
+	print "SEND: ", dumper $data;
 	if($self->{via} eq "ws") {
 		return $self->{tx}->send({json => $data})
 	} elsif($self->{via} eq "lp") {
@@ -184,11 +198,11 @@ __DATA__
 		},
 		"trans_id":	{
 			"type":		"string",
-			"patern":	"^\\w{40}$"
+			"patern":	"^[0-9a-f]{40}$"
 		},
 		"checksum":	{
 			"type":		"string",
-			"patern":	"^\\w{40}$"
+			"patern":	"^[0-9a-f]{40}$"
 		},
 		"data":		{}
 	}
