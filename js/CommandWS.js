@@ -62,6 +62,7 @@ CommandWS.prototype._parseAndEmitCmd	= function(data) {
 	}
 	var cmd = new Command(this, msg);
 	this.emit(msg.cmd, cmd);
+	this.emit(msg.cmd + " " + msg.trans_id, cmd);
 	this.emit("command", cmd);
 };
 
@@ -100,17 +101,11 @@ CommandWS.prototype._onListCommands	= function(command) {
 			}
 			var trans_id = Command[sendFunc](this, cmd, data, this._lp, this.url);
 			var func = function(response) {
-				if((
-						response.msg.type == "RESPONSE"
-						|| response.msg.type == "EVENT"
-						|| response.msg.type == "ERROR"
-					) && response.msg.trans_id == trans_id) {
-					cb(response);
-					if(response.msg.type != "EVENT")
-						this.removeListener(cmd, func);
-				}
+				cb(response);
+				if(response.msg.type != "EVENT")
+					this.removeListener(cmd, func);
 			};
-			this.on(cmd, func);
+			this.on(cmd + " " + trans_id, func);
 			return trans_id;
 		}.bind(this);
 	}.bind(this))
