@@ -1,0 +1,22 @@
+{
+  "name": "CommandWS",
+  "version": "0.0.1",
+  "description": "",
+  "main": "js/CommandWS.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FCO/Mojolicious-Plugin-CommandWS.git"
+  },
+  "author": "Fernando Correa de Oliveira <fco@cpan.org>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FCO/Mojolicious-Plugin-CommandWS/issues"
+  },
+  "homepage": "https://github.com/FCO/Mojolicious-Plugin-CommandWS",
+  "dependencies": {
+    "tv4": "^1.2.7"
+  }
+}
