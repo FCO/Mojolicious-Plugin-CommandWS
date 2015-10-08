@@ -11,6 +11,7 @@ our $VERSION = '0.01';
 sub register {
 	my ($self, $app, $conf) = @_;
 	my $r	= $app->routes;
+
 	$app->attr(events => sub{ Mojo::EventEmitter->new });
 
 	push @{$app->static->classes}, "Mojolicious::Plugin::CommandWS::Command";

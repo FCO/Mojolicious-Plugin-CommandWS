@@ -1,6 +1,7 @@
 var Command = require("./Command.js");
 const util = require('util');
 const EventEmitter = require('events');
+const tv4 = require("tv4");
 
 module.exports = CommandWS;
 function CommandWS(path, via) {
@@ -95,9 +96,17 @@ CommandWS.prototype._onListCommands	= function(command) {
 			schema = command.msg.data[cmd].schema;
 		}
 		this.cmd[cmd] = function(data, cb) {
-			if(schema) var result = tv4.validateMultiple(data, schema);
-			if(result && !result.valid) {
-				return cb({error: tv4.error});
+			if(schema) {
+				schema = (schema instanceof Array ? schema : [schema]);
+				for(var i = 0; i < schema.length; i++) {
+					var sch = schema[i];
+					var valid = tv4.validate(data, sch);
+					console.log("result:", valid);
+					if(!valid) {
+						console.warn("local_validation fail:", tv4.error);
+						return cb({error: tv4.error});
+					}
+				}
 			}
 			var trans_id = Command[sendFunc](this, cmd, data, this._lp, this.url);
 			var func = function(response) {
