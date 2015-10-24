@@ -4,26 +4,41 @@ const EventEmitter = require('events');
 const tv4 = require("tv4");
 
 module.exports = CommandWS;
-function CommandWS(path, via) {
+function CommandWS(url, via) {
 	EventEmitter.call(this);
 	if(via == null) {
 		via = window.WebSocket != undefined ? "ws" : "lp";
 	}
 	this.via = via;
 	this.cmd = {};
-	this._path = path;
+
+	this._url = document.createElement("A");
+	this._url.href = url;
+	this._ssl = this._url.protocol == "ws:" || this._url.protocol == "https:";
 	this._init();
 }
 
 util.inherits(CommandWS, EventEmitter);
 
+CommandWS.prototype.__defineGetter__("_wsProto", function() {
+	return "ws" + (this._ssl ? "s:" : ":");
+});
+
+CommandWS.prototype.__defineGetter__("_httpProto", function() {
+	return "http" + (this._ssl ? "s:" : ":");
+});
+
 CommandWS.prototype.__defineGetter__("url", function() {
+	var url = document.createElement("A");
+	url.href = this._url.href;
+
 	if(this.via == "ws")
-		return "ws://" + location.host + "/ws";
+		url.protocol = this._wsProto;
 	else if(this.via == "lp")
-		return "/ws";
+		url.protocol = this._httpProto;
 	else
 		throw "Invalid value for 'via': " + this.via;
+	return url.href;
 });
 
 CommandWS.prototype._lp		= null;
@@ -31,6 +46,7 @@ CommandWS.prototype._lp		= null;
 CommandWS.prototype._index	= 0;
 
 CommandWS.prototype._init	= function() {
+	this.cmd = {};
 	if(this.via == "ws") {
 		this._ws		= new WebSocket(this.url);
 		this._ws.onmessage	= this._onMessage.bind(this);

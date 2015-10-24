@@ -69,7 +69,7 @@ sub register {
 					c	=> $c,
 				);
 
-				$msgCMD->exec
+				$msgCMD->exec if $msgCMD
 			});
 		})
 	;
