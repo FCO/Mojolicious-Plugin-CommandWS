@@ -4,7 +4,9 @@
   "description": "",
   "main": "js/CommandWS.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "browserify js/demo.js -o lib/Mojolicious/Plugin/CommandWS/public/demo.js",
+    "start": "perl bin/example.pl daemon"
   },
   "repository": {
     "type": "git",
@@ -17,6 +19,6 @@
   },
   "homepage": "https://github.com/FCO/Mojolicious-Plugin-CommandWS",
   "dependencies": {
-    "tv4": "^1.2.7"
+    "CommandWS.js": "git://github.com/fco/CommandWS.js.git"
   }
 }
