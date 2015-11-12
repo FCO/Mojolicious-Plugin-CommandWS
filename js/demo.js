@@ -5,7 +5,7 @@ cmd.on("command", function(data) {
 	div.innerHTML = JSON.stringify(data.msg);
 	document.querySelector("div#responses").appendChild(div);
 });
-cmd.on("open", function() {
+cmd.once("open", function() {
 	var box = document.querySelector("div#cmd_box");
 	Object.keys(this.cmd).sort().forEach(function(cmd) {
 		var opt = document.createElement("OPTION");
