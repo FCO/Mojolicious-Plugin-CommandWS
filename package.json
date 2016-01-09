@@ -20,6 +20,9 @@
   },
   "homepage": "https://github.com/FCO/Mojolicious-Plugin-CommandWS",
   "dependencies": {
-    "CommandWS.js": "../CommandWS.js"
+    "CommandWS.js": "git://github.com/fco/CommandWS.js.git"
+  },
+  "devDependencies": {
+    "browserify": "~12.0.1"
   }
 }
